@@ -63,7 +63,7 @@ pipeline {
                             -Dsonar.projectVersion=1.0.${BUILD_NUMBER} \
                             -Dsonar.sources=. \
                             -Dsonar.exclusions="**/*test*.py,**/venv/**,**/__pycache__/**" \
-                            -Dsonar.host.url=\${SONAR_HOST_URL} \
+                            -Dsonar.host.url= http://sonarqube:9000
                             -Dsonar.login=${SONAR_TOKEN} \
                             -Dsonar.scm.provider=git \
                             -Dsonar.qualitygate.wait=true \
