@@ -1,0 +1,56 @@
+name: Multi-Language SonarQube Analysis
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+env:
+  SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL }}
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.22'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Backend tests and coverage
+        run: |
+          cd backend
+          go test -v -coverprofile=coverage.out ./...
+
+      - name: Frontend tests and coverage
+        run: |
+          cd frontend
+          npm ci
+          npm run test:coverage
+
+      - name: SonarQube Analysis
+        uses: SonarSource/sonarqube-scan-action@v4.1.0
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.projectKey=my-full-stack
+            -Dsonar.sources=backend/src,frontend/src
+            -Dsonar.tests=backend,frontend
+            -Dsonar.test.inclusions=**/*_test.go,**/*.spec.ts,**/*.test.tsx
+            -Dsonar.go.coverage.reportPaths=backend/coverage.out
+            -Dsonar.javascript.lcov.reportPaths=frontend/coverage/lcov.info
